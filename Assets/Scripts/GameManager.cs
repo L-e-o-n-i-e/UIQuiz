@@ -5,65 +5,79 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
+    #region Objects in the Scene
     public GameObject scrlVGreen;
     public GameObject scrlVRed;
     public GameObject submitButton;
     AudioSource audioSource;
     public AudioClip happySound;
     public AudioClip unhappySound;
-    Button submitBttn;
+    Button submitBtnBtnCmpnt;
+    Image submitBtnImgCmpnt;
     Transform ContentGreen;
     Transform ContentRed;
+    #endregion
 
     #region Timer Related
-    public int nbBttSpawnedStart = 4;
-    public int increaseWhenWin = 2;
     public int timeBeforeReset = 2;
     public float timeBeforeStart = 4;
     float timeOfReset;
     float timeofStart;
     #endregion
 
-
+    #region Cards
     public Button buttonPrefab;
-    Button buttonToSpawn;
-    bool btnSpawned = false;
-    bool btnAreWhite = false;
+    public int nbCardsToSpawn = 4;
+    public int increaseNbWhenWin = 2;
+    Button cardToSpawn;
+    bool spawnedAlready = false;
+    bool cardsAreWhite = false;
     Dictionary<string, Color> btnDictionary;
-    int nbOfGreens = 0;
+    int nbOfGreensInTotal = 0;
     List<GameObject> cards;
+    List<Image> listOfImgCmpntOfCards;
+    List<Button> listOfbtnCmpntOfCards;
+    #endregion
 
+    #region Game Flow
     enum GamePhase { SettingButtons, MovingButtons, CheckAnswer, Reset }
     GamePhase gamePhase;
     bool win = false;
     bool IsVerified = false;
     bool isReset = false;
-
+    #endregion
 
     private void Awake()
     {
+        //Caching Content Objects
         ContentGreen = scrlVGreen.transform.GetChild(0).GetChild(0);
         ContentRed = scrlVRed.transform.GetChild(0).GetChild(0);
-        submitBttn = submitButton.GetComponent<Button>();
+        
+        submitBtnBtnCmpnt = submitButton.GetComponent<Button>();
+        submitBtnImgCmpnt = submitButton.GetComponent<Image>();
         audioSource = gameObject.GetComponent<AudioSource>();
 
     }
+
     void Start()
     {
+        //prepare for caching
         btnDictionary = new Dictionary<string, Color>();
         cards = new List<GameObject>();
+        listOfImgCmpntOfCards = new List<Image>();
+        listOfbtnCmpntOfCards = new List<Button>();
+
         gamePhase = GamePhase.SettingButtons;
         ResetTime();
 
     }
 
-    // Update is called once per frame
     void Update()
     {
         switch (gamePhase)
         {
             case GamePhase.SettingButtons:
-                SettingButtons(nbBttSpawnedStart);
+                SettingButtons(nbCardsToSpawn);
 
                 break;
             case GamePhase.MovingButtons:
@@ -84,231 +98,174 @@ public class GameManager : MonoBehaviour
         }
 
     }
-    private void SettingButtons(int nbBttSpawned)
-    {
-        if (!btnSpawned)
-        {
-            // Left side populated with correct number of cards 
-            for (int i = 0; i < nbBttSpawned; i++)
-            {
-                buttonToSpawn = GameObject.Instantiate(buttonPrefab, ContentGreen);
 
-                Button button = buttonToSpawn.gameObject.GetComponent<Button>();
-                // Player cannot move cards 
-                button.enabled = false;
-                // Guess button deactivated
-                submitBttn.enabled = false;
+    private void SettingButtons(int nbCardsToSpawn)
+    {
+        if (!spawnedAlready)
+        {
+            submitBtnBtnCmpnt.enabled = false;
+
+            for (int i = 0; i < nbCardsToSpawn; i++)
+            {
+                cardToSpawn = GameObject.Instantiate(buttonPrefab, ContentGreen);
+
+                Button btnCompntOfCard = cardToSpawn.gameObject.GetComponent<Button>();
+                btnCompntOfCard.enabled = false;
 
                 // Cards are numbered randomly 
-                string number = RandomNumberInString();
-                if (btnDictionary.ContainsKey(number))
-                {
-                    number = RandomNumberInString();
-                }
-                buttonToSpawn.GetComponentInChildren<Text>().text = number;
+                string randomNumber = RandomNumberToString();
+                if (btnDictionary.ContainsKey(randomNumber))
+                    randomNumber = RandomNumberToString();
 
-                // Cards are colored
-                Color color = RandomColor();
-                //Counting nb of green Cards
-                if (color.Equals(Color.green))
-                {
-                    nbOfGreens++;
-                }
-                buttonToSpawn.GetComponentInChildren<Image>().color = color;
+                cardToSpawn.GetComponentInChildren<Text>().text = randomNumber;
 
-                MoveButton move = buttonToSpawn.GetComponent<MoveButton>();
+                // Cards are colored randomly
+                Color colorOfTheCard = RandomColor();
+                if (colorOfTheCard.Equals(Color.green))
+                    nbOfGreensInTotal++;
 
-                button.onClick.AddListener(move.Move);
+                Image imgCompntOfCard = cardToSpawn.GetComponentInChildren<Image>();
+                imgCompntOfCard.color = colorOfTheCard;
 
-                //Populate the dictionary
-                btnDictionary.Add(number, color);
-                cards.Add(buttonToSpawn.gameObject);
+                //Cards can move
+                MoveButton move = cardToSpawn.GetComponent<MoveButton>();
+                btnCompntOfCard.onClick.AddListener(move.Move);
+
+                //Caching
+                btnDictionary.Add(randomNumber, colorOfTheCard);
+                cards.Add(cardToSpawn.gameObject);
+                listOfbtnCmpntOfCards.Add(btnCompntOfCard);
+                listOfImgCmpntOfCards.Add(imgCompntOfCard);
 
             }
-            btnSpawned = true;
+            spawnedAlready = true;
         }
 
-        // After a set time, moves to Guessing phase
+        //Moves to Guessing phase
         if (Time.time >= timeofStart)
         {
-            Debug.Log("Moving Phase!");
             gamePhase = GamePhase.MovingButtons;
         }
     }
 
-    private void ButtonsGoWhite()
+    private void CardsGoWhite()
     {
 
-        if (!btnAreWhite)
+        if (!cardsAreWhite)
         {
-            for (int i = 0; i < nbBttSpawnedStart; i++)
+            for (int i = 0; i < nbCardsToSpawn; i++)
             {
-                Button button = ContentGreen.GetChild(i).GetComponent<Button>();
-                Debug.Log(button.gameObject.name + i);
-                Image imgButton = ContentGreen.GetChild(i).GetComponent<Image>();
-                //Player can now move cards
-                button.enabled = true;
-
-                imgButton.color = Color.white;
-
+                listOfbtnCmpntOfCards[i].enabled = true;
+                listOfImgCmpntOfCards[i].color = Color.white;
             }
-            btnAreWhite = true;
+            cardsAreWhite = true;
         }
 
     }
 
     public void MovingButtons()
     {
-
-        //Card colors disappear
-        ButtonsGoWhite();
-
-        //Player pressing Guess button will move to “Calculate End” phase
-        submitBttn.enabled = true;
+        CardsGoWhite();
+        submitBtnBtnCmpnt.enabled = true;
     }
 
     public void SubmitClicked()
     {
-        //ResetTime();
-        Debug.Log("Submit Clicked");
-        timeOfReset = Time.time + timeBeforeReset;
+        ResetTime();
         gamePhase = GamePhase.CheckAnswer;
     }
-
-
+    
     public void CheckAnswer()
     {
-        Debug.Log("CheckAnswer()");
         if (!IsVerified)
         {
-            //Unclickable buttons
-            submitBttn.GetComponent<Button>().enabled = false;
+            submitBtnBtnCmpnt.enabled = false;
             UnclickableCards();
 
-            bool isGreen = true;
-            int GreenFound = 0;
-
-            int nbChild = ContentGreen.childCount;
-            Debug.Log("nb of child in green view : " + nbChild);
+            bool cardIsGreen = true;
+            int greenCardsFound = 0;
 
             //Verify ScrollView Green
+            int nbChildInContentGreen = ContentGreen.childCount;
             int i = 0;
-            while (i < nbChild && isGreen)
+            while (i < nbChildInContentGreen && cardIsGreen)
             {
-                string buttonNumber = ContentGreen.GetChild(i).gameObject.GetComponentInChildren<Text>().text;
-
-                Debug.Log("numero du bouton = " + buttonNumber);
-                if (btnDictionary.ContainsKey(buttonNumber))
+                string cardNumber = ContentGreen.GetChild(i).gameObject.GetComponentInChildren<Text>().text;
+                
+                if (btnDictionary.ContainsKey(cardNumber))
                 {
-                    Color valueColor = btnDictionary[buttonNumber];
-                    Debug.Log(valueColor + "is the color of : " + buttonNumber);
-                    if (!valueColor.Equals(Color.green))
-                    {
-                        isGreen = false;
-                        Debug.Log("Mauvaise reponse!");
-                    }
-                    else
-                    {
-                        //Keep track nb of green cards found
-                        GreenFound++;
-                    }
+                    Color colorOfTheCard = btnDictionary[cardNumber];
 
+                    if (!colorOfTheCard.Equals(Color.green))
+                        cardIsGreen = false;
+                    else
+                        greenCardsFound++;
                 }
                 else
-                {
-                    Debug.Log(buttonNumber + "Ne fait pas partie du Dictionnaire ...!!");
+                { 
+                    Debug.Log(cardNumber + " not found");
                 }
                 i++;
             }
 
 
-            if (isGreen)
+            if (cardIsGreen && (nbOfGreensInTotal - greenCardsFound == 0))
             {
-
-                if (nbOfGreens - GreenFound == 0)
-                {
-                    Debug.Log("win!");
-                    win = true;
-                }
-                else
-                {
-                    Debug.Log("Lose!");
-
-                    win = false;
-                }
-
-
-            }
-            else
-            {
-                Debug.Log("Lose!");
-
-                win = false;
-            }
-
-
-
-            if (win)
-            {
+                win = true;
                 Win();
             }
             else
             {
+                win = false;
                 Lose();
-
             }
         }
-
-        Debug.Log("timeOfReset in CheckAnswer: " + timeOfReset);
+        
         if (Time.time >= timeOfReset)
         {
-            Debug.Log("Enter Reset Phase");
-
             gamePhase = GamePhase.Reset;
         }
     }
 
     private void Win()
     {
-        //guess button turns green 
-        //Add 2 more cards next round
-        // Play happy sound
-        submitBttn.GetComponent<Image>().color = Color.green;
-        nbBttSpawnedStart = nbBttSpawnedStart + increaseWhenWin;
-        audioSource.PlayOneShot(happySound);
+        submitBtnImgCmpnt.color = Color.green;
+        nbCardsToSpawn = nbCardsToSpawn + increaseNbWhenWin;
+        PlaySound(happySound);
         IsVerified = true;
     }
+
     private void Lose()
     {
-        //If you lose, 
-        //guess button turns red 
-        //Next round, start over from starting cards 
-        //Play unhappy sou
-        submitBttn.GetComponent<Image>().color = Color.red;
-        nbBttSpawnedStart = 4;
-        audioSource.PlayOneShot(unhappySound);
+        submitBtnImgCmpnt.color = Color.red;
+        nbCardsToSpawn = 4;
+        PlaySound(unhappySound);
         IsVerified = true;
+    }
+
+    private void PlaySound(AudioClip sound)
+    {
+        audioSource.PlayOneShot(sound);
     }
 
     private void ResetRound(bool win)
-    {
-        
-            Debug.Log("ResetRound()");
-            //Game calculates if you win or loss
+    {        
+        ClearCards();
+        ResetVariables();
+        ResetTime();
 
-            ClearCards();
-            ResetVariables();
-            ResetTime();
+        submitBtnImgCmpnt.color = Color.white;
 
-            submitBttn.GetComponent<Image>().color = Color.white;
-
-            gamePhase = GamePhase.SettingButtons;
+        gamePhase = GamePhase.SettingButtons;
 
     }
+
     private void ResetTime()
     {
         timeofStart = Time.time + timeBeforeStart;
+        timeOfReset = Time.time + timeBeforeReset;
     }
+
     private void ClearCards()
     {
         for (int i = 0; i < cards.Count; i++)
@@ -321,30 +278,34 @@ public class GameManager : MonoBehaviour
     {
         for (int i = 0; i < cards.Count; i++)
         {
-            cards[i].gameObject.GetComponent<Button>().enabled = false;
+            listOfbtnCmpntOfCards[i].enabled = false;
         }
     }
+
     private void ResetVariables()
     {
 
-        nbOfGreens = 0;
-        btnAreWhite = false;
+        nbOfGreensInTotal = 0;
+        cardsAreWhite = false;
+        spawnedAlready = false;
+        IsVerified = false;
+
+        //Clear the Collections
         cards.Clear();
         btnDictionary.Clear();
-        btnSpawned = false;
-        IsVerified = false;
+        listOfbtnCmpntOfCards.Clear();
+        listOfImgCmpntOfCards.Clear();
     }
 
-    private string RandomNumberInString()
+    private string RandomNumberToString()
     {
-        return Random.Range(1, 999).ToString();
+        return Random.Range(1, 1000).ToString();
     }
 
     private Color RandomColor()
     {
         return Random.Range(0, 2) == 0 ? Color.green : Color.red;
     }
-
 
 }
 

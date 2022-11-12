@@ -285,11 +285,11 @@ MonoBehaviour:
   submitButton: {fileID: 1501007346}
   happySound: {fileID: 8300000, guid: 54197d668a6d5af4dbae81d54b49d6b2, type: 3}
   unhappySound: {fileID: 8300000, guid: ebae7f2fb644a48408cffbefd57081e2, type: 3}
-  nbBttSpawnedStart: 4
-  increaseWhenWin: 2
   timeBeforeReset: 2
   timeBeforeStart: 3
   buttonPrefab: {fileID: 5403216485302103601, guid: c4c9e2366e157e64ba1585ae0c14a4f7, type: 3}
+  nbCardsToSpawn: 4
+  increaseNbWhenWin: 2
 --- !u!4 &252072867
 Transform:
   m_ObjectHideFlags: 0

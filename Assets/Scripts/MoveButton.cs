@@ -16,7 +16,6 @@ public class MoveButton : MonoBehaviour
     }
     public void Move()
     {
-        Debug.Log(name + "appuye!");
         ContentGreen = scrlVGreen.transform.GetChild(0).GetChild(0);
         ContentRed = scrlVRed.transform.GetChild(0).GetChild(0);
 
