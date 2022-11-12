@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8409535899302584346}
   - component: {fileID: 1798079902796983695}
   - component: {fileID: 5403216485302103601}
-  - component: {fileID: -8097351698158058771}
+  - component: {fileID: -8058357212513555026}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -135,7 +135,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
---- !u!114 &-8097351698158058771
+--- !u!114 &-8058357212513555026
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -147,8 +147,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58358fc0f8a9bca46ace3d1210878e1c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scrlVGreen: {fileID: 0}
-  scrlVRed: {fileID: 0}
 --- !u!1 &3042781273571161711
 GameObject:
   m_ObjectHideFlags: 0

@@ -9,7 +9,7 @@ public class MoveButton : MonoBehaviour
     GameObject scrlVRed;
     Transform ContentGreen;
     Transform ContentRed;
-    private void Start()
+    private void Awake()
     {
          scrlVGreen = GameObject.Find("Scroll View Green");
          scrlVRed = GameObject.Find("Scroll View Red");
